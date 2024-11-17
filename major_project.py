@@ -20,7 +20,7 @@ from PIL import Image
 import cv2
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+import random
 # Deep Learning Libraries
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
@@ -35,330 +35,44 @@ from sklearn.metrics import confusion_matrix, classification_report, accuracy_sc
 
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-# Define the paths for train, validation, and test directories
-train_dir = '/Users/anil/Downloads/chest_xray/train'
-val_dir = '/Users/anil/Downloads/chest_xray/val'
-test_dir = '/Users/anil/Downloads/chest_xray/test'
-
-# Initialize ImageDataGenerator for preprocessing
-data_gen = ImageDataGenerator(rescale=1.0/255)  # Normalize pixel values
-
-# Load the training set
-train_datagen = ImageDataGenerator(
-    rescale=1.0/255,
-    rotation_range=40,
-    width_shift_range=0.2,
-    height_shift_range=0.2,
-    shear_range=0.2,
-    zoom_range=0.2,
-    horizontal_flip=True,
-    fill_mode='nearest'
-)
-
-train_generator = train_datagen.flow_from_directory(
-    train_dir,
-    target_size=(224, 224),
-    batch_size=32,
-    class_mode='binary'
-)
-
-
-validation_generator = data_gen.flow_from_directory(
-    directory=val_dir,
-    target_size=(224, 224),
-    batch_size=32,
-    class_mode='binary'
-)
-
-test_generator = data_gen.flow_from_directory(
-    directory=test_dir,
-    target_size=(224, 224),
-    batch_size=32,
-    class_mode='binary',
-    shuffle=False
-)
-
-# """# EXPLORATORY DATA ANALYSIS
-
-# ## Checking if there is any Imbalance between the 'NORMAL' and 'PNEUMONIA CLASSES'
-# """
-
-import os
-
-# def count_images(directory):
-#     normal_count = len(os.listdir(os.path.join(directory, 'NORMAL')))
-#     pneumonia_count = len(os.listdir(os.path.join(directory, 'PNEUMONIA')))
-#     return normal_count, pneumonia_count
-
-# train_normal, train_pneumonia = count_images(train_dir)
-# val_normal, val_pneumonia = count_images(val_dir)
-# test_normal, test_pneumonia = count_images(test_dir)
-
-# print("Training set - NORMAL:", train_normal, "PNEUMONIA:", train_pneumonia)
-# print("Validation set - NORMAL:", val_normal, "PNEUMONIA:", val_pneumonia)
-# print("Test set - NORMAL:", test_normal, "PNEUMONIA:", test_pneumonia)
-
-# """## Sample Image Visualisation
-# This counts and displays the number of images in each class for the train, validation, and test sets.
-# """
-
-import matplotlib.pyplot as plt
-import cv2
-import random
-
-# def plot_samples(directory, label, num_images=5):
-#     folder = os.path.join(directory, label)
-#     images = random.sample(os.listdir(folder), num_images)
-#     plt.figure(figsize=(15, 5))
-#     for i, img_name in enumerate(images):
-#         img = cv2.imread(os.path.join(folder, img_name))
-#         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-#         plt.subplot(1, num_images, i + 1)
-#         plt.imshow(img)
-#         plt.axis('off')
-#         plt.title(label)
-#     plt.show()
-
-# plot_samples(train_dir, 'NORMAL')
-# plot_samples(train_dir, 'PNEUMONIA')
-
-# """# Cleaing and Validating Image Files
-# This removes any non-image and corrupted files from the training, validation, and test directories to ensure only valid images are used for model training and evaluation.
-
-
-import os
-
-# Define a function to delete unwanted files
-def remove_non_image_files(directory):
-    for root, _, files in os.walk(directory):
-        for file in files:
-            if not (file.endswith('.jpg') or file.endswith('.jpeg') or file.endswith('.png')):
-                file_path = os.path.join(root, file)
-                os.remove(file_path)
-                print(f"Removed non-image file: {file_path}")
-
-# Apply this function to each directory
-remove_non_image_files(train_dir)
-remove_non_image_files(val_dir)
-remove_non_image_files(test_dir)
-
-
-def validate_images(directory):
-    for root, _, files in os.walk(directory):
-        for file in files:
-            file_path = os.path.join(root, file)
-            try:
-                img = Image.open(file_path)
-                img.verify()  # Check if image can be opened
-            except (IOError, SyntaxError) as e:
-                print(f"Removing corrupted image: {file_path}")
-                os.remove(file_path)  # Remove unreadable files
-
-# Validate images in each directory
-validate_images(train_dir)
-validate_images(val_dir)
-validate_images(test_dir)
-
-# # Build and Compile the CNN Model with Transfer Learning
-# This uses the VGG16 pre-trained model as a base, adds custom layers for binary classification, and compiles the model with a low learning rate for fine-tuning on the pneumonia dataset.
-
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
-
-# Define a simple CNN model with the updated input shape
-model = Sequential()
-
-# First convolutional layer
-model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(224, 224, 3)))  # Updated input shape
-model.add(MaxPooling2D(pool_size=(2, 2)))
-
-# Second convolutional layer
-model.add(Conv2D(64, (3, 3), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-
-# Third convolutional layer
-model.add(Conv2D(128, (3, 3), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-
-# Flatten and fully connected layers
-model.add(Flatten())
-model.add(Dense(128, activation='relu'))
-model.add(Dropout(0.5))  # Dropout to prevent overfitting
-model.add(Dense(1, activation='sigmoid'))  # Output layer for binary classification
-
-# Compile the model with a lower learning rate
-model.compile(optimizer=Adam(learning_rate=1e-4), loss='binary_crossentropy', metrics=['accuracy'])
-
-# Display model summary
-model.summary()
-
-## Training the Model
-# This trains the model on the training data while monitoring validation performance for 10 epochs.
-
-
-#
-
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-
-# Train the model
-history = model.fit(
-    train_generator,
-    steps_per_epoch=train_generator.samples // train_generator.batch_size,
-    validation_data=validation_generator,
-    validation_steps=validation_generator.samples // validation_generator.batch_size,
-    epochs=10
-)
-
-# """# Visualizing Training and Validation Performance
-# This defines a function to plot the model's training and validation accuracy and loss over 10 epochs, helping to assess model performance and check for overfitting.
-# """
-
-# import matplotlib.pyplot as plt
-
-# # Function to plot the training history
-# def plot_training_history(history):
-#     # Plot training & validation accuracy
-#     plt.figure(figsize=(12, 5))
-#     plt.subplot(1, 2, 1)
-#     plt.plot(history.history['accuracy'], label='Train Accuracy')
-#     plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-#     plt.title('Model Accuracy')
-#     plt.xlabel('Epochs')
-#     plt.ylabel('Accuracy')
-#     plt.legend()
-
-#     # Plot training & validation loss
-#     plt.subplot(1, 2, 2)
-#     plt.plot(history.history['loss'], label='Train Loss')
-#     plt.plot(history.history['val_loss'], label='Validation Loss')
-#     plt.title('Model Loss')
-#     plt.xlabel('Epochs')
-#     plt.ylabel('Loss')
-#     plt.legend()
-
-#     plt.show()
-
-# # Use this function with your training history
-# plot_training_history(history)
-
-# """## Evaluating on the Test Set"""
-
-# Evaluate the model on the test set
-test_loss, test_accuracy = model.evaluate(test_generator, steps=test_generator.samples // test_generator.batch_size)
-
-# Print the test accuracy
-# print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
-
-# print(test_loss)
-
-# """## Getting a classification report"""
-
-from sklearn.metrics import classification_report
-
-# Get predictions on the test set
-predictions = model.predict(test_generator, steps=None)
-
-# Convert probabilities to binary classes
-predicted_classes = (predictions > 0.5).astype("int32")
-
-# Get true labels from the test generator
-true_classes = test_generator.classes
-class_labels = list(test_generator.class_indices.keys())
-
-# Print classification report
-# print(classification_report(true_classes, predicted_classes, target_names=class_labels))
-
-# """# Saving the Model using Pickle"""
-
-# Save the model in TensorFlow's SavedModel format
-model.save("pneumonia_detection_model.keras")
-
-# Load the saved model
-model = tf.keras.models.load_model("pneumonia_detection_model.keras")
-
-# """## Testing the model in real time
-# We run a bunch of images through the model to see how well it works in real time.
-# """
-
-import numpy as np
-import matplotlib.pyplot as plt
 from tensorflow.keras.preprocessing import image
 
-def display_prediction(image_path, model):
-    # Load and preprocess the image
-    img = image.load_img(image_path, target_size=(224, 224))  # Resize to model's expected input
-    img_array = image.img_to_array(img)                       # Convert image to array
-    img_array = np.expand_dims(img_array, axis=0)             # Add batch dimension
-    img_array /= 255.0                                        # Normalize to [0,1]
+import streamlit as st
+
+
+# Load the pre-trained model
+@st.cache_resource  # Cache the model for faster access
+def load_model():
+    return tf.keras.models.load_model("/Users/anil/Downloads/pneumonia_detection_model.keras")
+
+model = load_model()
+
+# Function to preprocess and predict the uploaded image
+def predict_image(img):
+    # Ensure the image is in RGB format
+    img = img.convert("RGB")
+    img = img.resize((224, 224))  # Resize to match model input size
+    img_array = np.array(img) / 255.0  # Normalize pixel values to [0, 1]
+    img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
 
     # Make a prediction
     prediction = model.predict(img_array)
     class_label = "PNEUMONIA" if prediction[0][0] > 0.5 else "NORMAL"
     confidence = prediction[0][0] if prediction[0][0] > 0.5 else 1 - prediction[0][0]
-
-    # Display the image and prediction
-    plt.imshow(img)
-    plt.axis('off')
-    plt.title(f"Prediction: {class_label} ({confidence*100:.2f}%)")
-    plt.show()
-
-# image_path = 'val_normal1.jpeg'
-# display_prediction(image_path, model)
-
-# image_path = 'val_normal2.jpeg'
-# display_prediction(image_path, model)
-
-# image_path = 'test_pneumonia1.jpeg'
-# display_prediction(image_path, model)
-
-# image_path = 'test_pneumonia2.jpeg'
-# display_prediction(image_path, model)
-
-# image_path = 'val_pneumonia1.jpeg'
-# display_prediction(image_path, model)
-
-# image_path = 'val_pneumonia2.jpeg'
-# display_prediction(image_path, model)
-
-
-import streamlit as st
-import numpy as np
-import tensorflow as tf
-from tensorflow.keras.preprocessing import image
-from PIL import Image
-import cv2
-
-# Load the trained model
-@st.cache_resource()  # Cache the model for faster loading
-def load_model():
-    model = tf.keras.models.load_model("best_pneumonia_model.keras")  # Replace with your model path
-    return model
-
-model = load_model()
-
-# Define a function for prediction
-def predict_image(img):
-    img = img.resize((224, 224))  # Resize to model's expected input size
-    img_array = image.img_to_array(img)  # Convert image to array
-    img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
-    img_array /= 255.0  # Normalize to [0,1]
-
-    prediction = model.predict(img_array)
-    class_label = "PNEUMONIA" if prediction[0][0] > 0.5 else "NORMAL"
-    confidence = prediction[0][0] if prediction[0][0] > 0.5 else 1 - prediction[0][0]
-    
     return class_label, confidence
 
-# Streamlit app interface
+# Streamlit interface
 st.title("Pneumonia Detection from Chest X-rays")
 st.write("Upload a chest X-ray image to classify it as NORMAL or PNEUMONIA.")
 
 # Upload image
 uploaded_file = st.file_uploader("Choose a chest X-ray image...", type=["jpg", "jpeg", "png"])
 
-if uploaded_file is not None:
+if uploaded_file:
     # Display the uploaded image
     img = Image.open(uploaded_file)
     st.image(img, caption="Uploaded Image", use_column_width=True)
@@ -367,4 +81,4 @@ if uploaded_file is not None:
     with st.spinner("Classifying..."):
         class_label, confidence = predict_image(img)
     st.success(f"Prediction: {class_label}")
-    st.write(f"Confidence: {confidence*100:.2f}%")
+    st.write(f"Confidence: {confidence * 100:.2f}%")
