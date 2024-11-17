@@ -8,7 +8,7 @@ import streamlit as st
 @st.cache_resource
 def load_model():
     # Use kagglehub to download the model
-    ath = kagglehub.model_download("eashitadhillon/pneumonia_detection_model/keras/default")
+    path = kagglehub.model_download("eashitadhillon/pneumonia_detection_model/keras/default")
     st.write(f"Model downloaded to: {path}")
 
     # Load the SavedModel using TensorFlow
