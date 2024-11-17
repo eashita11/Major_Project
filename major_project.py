@@ -5,27 +5,30 @@ import streamlit as st
 from PIL import Image
 from tensorflow.keras.models import load_model
 
-# Load the pre-trained model from KaggleHub
 @st.cache_resource
 def load_model_from_kagglehub():
-    # Download model using KaggleHub
+    # Download the model using KaggleHub
     path = kagglehub.model_download("eashitadhillon/pneumonia_detection_model/keras/default")
     st.write(f"Model downloaded to: {path}")
 
-    # Find the .h5 file in the downloaded directory
+    # Check the contents of the downloaded directory
+    contents = os.listdir(path)
+    st.write(f"Contents of the downloaded directory: {contents}")
+
+    # Locate the .h5 file in the directory
     model_file = None
-    for file in os.listdir(path):
-        if file.endswith(".h5"):  # Look for .h5 file
+    for file in contents:
+        if file.endswith(".h5"):  # Look for .h5 files
             model_file = os.path.join(path, file)
             break
 
     if model_file is None:
         st.error("No .h5 file found in the downloaded path.")
-        raise FileNotFoundError("No .h5 model file found.")
+        raise FileNotFoundError("No .h5 model file found in the directory.")
 
     # Load the .h5 model
     try:
-        model = load_model(model_file)
+        model = load_model(model_file)  # Use TensorFlow/Keras to load the model
         st.write("Model loaded successfully!")
         return model
     except Exception as e:
