@@ -62,7 +62,17 @@ if __name__ == "__main__":
 # Load the pre-trained model
 @st.cache_resource  # Cache the model for faster access
 def load_model():
-    return tf.keras.models.load_model("Downloads/pneumonia_detection_model.keras")
+    model_path = "pneumonia_detection_model.keras"
+    if not os.path.exists(model_path):
+        # Download the model from Google Drive
+        url = "https://drive.google.com/uc?id=<FILE_ID>&export=download"
+        response = requests.get(url, stream=True)
+        with open(model_path, "wb") as file:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    file.write(chunk)
+        print("Model downloaded successfully.")
+    return tf.keras.models.load_model(model_path)
 
 model = load_model()
 
