@@ -7,6 +7,7 @@ subprocess.run(["pip", "uninstall", "-y", "jax", "jaxlib"], check=True)
 import numpy as np
 import pandas as pd
 import os
+import requests
 
 # Image Processing and Visualization
 from PIL import Image
