@@ -7,12 +7,18 @@ import streamlit as st
 # Load the pre-trained model using kagglehub
 @st.cache_resource
 def load_model():
-    # Use kagglehub to download the model
     path = kagglehub.model_download("eashitadhillon/pneumonia_detection_model/keras/default")
     st.write(f"Model downloaded to: {path}")
 
-    # Load the SavedModel using TensorFlow
-    model = tf.keras.models.load_model(path)
+    # Inspect the directory contents
+    st.write(f"Directory contents: {os.listdir(path)}")
+
+    # Load the model as a TensorFlow SavedModel
+    try:
+        model = tf.keras.models.load_model(path)
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        raise
     return model
 
 # Function to preprocess and predict the uploaded image
