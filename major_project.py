@@ -65,7 +65,6 @@ if __name__ == "__main__":
 
 @st.cache_resource
 def load_model():
-    # Get URL from secrets
     model_url = st.secrets["model"]["url"]
     local_model_path = "pneumonia_detection_model.keras"
 
@@ -74,10 +73,13 @@ def load_model():
         response = requests.get(model_url)
         with open(local_model_path, "wb") as f:
             f.write(response.content)
-
+        print(f"Downloaded model saved to {local_model_path}")
+    
+    print(f"Model path exists: {os.path.exists(local_model_path)}")
+    print(f"Downloaded file size: {os.path.getsize(local_model_path)} bytes")
+    
     # Load the model
     return tf.keras.models.load_model(local_model_path)
-
 model = load_model()
 
 # Function to preprocess and predict the uploaded image
