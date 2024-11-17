@@ -62,7 +62,6 @@ if __name__ == "__main__":
 # Load the pre-trained model
 @st.cache_resource  # Cache the model for faster access
 
-@st.cache_resource
 def load_model():
     model_path = "pneumonia_detection_model.keras"
     if not os.path.exists(model_path):
@@ -74,9 +73,10 @@ def load_model():
                 if chunk:
                     file.write(chunk)
         print("Model downloaded successfully.")
-    return tf.keras.models.load_model(model_path)
+    model = tf.keras.models.load_model("pneumonia_detection_model.keras")
+    model.save("pneumonia_detection_model.h5")
 
-
+    return model
 model = load_model()
 
 # Function to preprocess and predict the uploaded image
