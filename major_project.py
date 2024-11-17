@@ -4,21 +4,21 @@ import tensorflow as tf
 import kagglehub
 import streamlit as st
 import os 
+from keras.layers import TFSMLayer
 
 # Load the pre-trained model using kagglehub
 @st.cache_resource
 def load_model():
     path = kagglehub.model_download("eashitadhillon/pneumonia_detection_model/keras/default")
     st.write(f"Model downloaded to: {path}")
-
-    # Inspect the directory contents
-    st.write(f"Directory contents: {os.listdir(path)}")
-
-    # Load the model as a TensorFlow SavedModel
+    
     try:
-        model = tf.keras.models.load_model(path)
+        # Use TFSMLayer for inference
+        model = TFSMLayer(path, call_endpoint='serving_default')  # Adjust `call_endpoint` if necessary
+        st.write("Model loaded using TFSMLayer.")
+        return model
     except Exception as e:
-        st.error(f"Error loading model: {e}")
+        st.error(f"Failed to load model: {e}")
         raise
     return model
 
