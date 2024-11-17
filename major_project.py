@@ -1,4 +1,9 @@
 # Basic Libraries
+import subprocess
+
+# Uninstall problematic packages
+subprocess.run(["pip", "uninstall", "-y", "jax", "jaxlib"], check=True)
+
 import numpy as np
 import pandas as pd
 import os
