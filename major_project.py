@@ -65,10 +65,8 @@ if __name__ == "__main__":
 
 @st.cache_resource
 def load_model():
-   model_url = st.secrets["model"]["url"]  # Ensure this URL is correct and points to the direct download link
-   local_model_path = "pneumonia_detection_model.keras"
-
-    # Download the model if not already present
+    model_url = st.secrets["model"]["url"]  # Ensure this URL is correct and points to the direct download link
+    local_model_path = "pneumonia_detection_model.keras"
     if not os.path.exists(local_model_path):
         response = requests.get(model_url)
         if response.status_code == 200:
