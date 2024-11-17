@@ -65,22 +65,17 @@ if __name__ == "__main__":
 
 @st.cache_resource
 def load_model():
-    model_url = st.secrets["model"]["url"]  # Ensure this URL is correct and points to the direct download link
+   model_url = st.secrets["model"]["url"]  # Ensure this URL points to the model
     local_model_path = "pneumonia_detection_model.keras"
     if not os.path.exists(local_model_path):
         response = requests.get(model_url)
         if response.status_code == 200:
             with open(local_model_path, "wb") as f:
                 f.write(response.content)
-            print(f"Model downloaded successfully: {local_model_path}")
+            st.write(f"Model downloaded successfully: {local_model_path}")
         else:
-            print(f"Failed to download the model. HTTP Status: {response.status_code}")
+            st.error(f"Failed to download the model. HTTP Status: {response.status_code}")
             raise ValueError("Failed to download the model.")
-
-    print(f"File exists: {os.path.exists(local_model_path)}")
-    print(f"File size: {os.path.getsize(local_model_path)} bytes")
-    
-    # Load the model
     return tf.keras.models.load_model(local_model_path)
 model = load_model()
 
