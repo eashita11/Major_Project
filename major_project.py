@@ -8,11 +8,12 @@ import streamlit as st
 @st.cache_resource
 def load_model():
     # Use kagglehub to download the model
-    path = kagglehub.model_download("eashitadhillon/pneumonia_detection_model/keras/default")
+    ath = kagglehub.model_download("eashitadhillon/pneumonia_detection_model/keras/default")
     st.write(f"Model downloaded to: {path}")
-    
-    # Load the model from the downloaded path
-    return tf.keras.models.load_model(path)
+
+    # Load the SavedModel using TensorFlow
+    model = tf.keras.models.load_model(path)
+    return model
 
 # Function to preprocess and predict the uploaded image
 def predict_image(img):
