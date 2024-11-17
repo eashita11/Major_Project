@@ -62,7 +62,7 @@ if __name__ == "__main__":
 # Load the pre-trained model
 @st.cache_resource  # Cache the model for faster access
 def load_model():
-    return tf.keras.models.load_model("/Downloads/pneumonia_detection_model.keras")
+    return tf.keras.models.load_model("Downloads/pneumonia_detection_model.keras")
 
 model = load_model()
 
