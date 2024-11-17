@@ -31,6 +31,28 @@ from tensorflow.keras.preprocessing import image
 
 import streamlit as st
 
+import os
+import subprocess
+
+def uninstall_packages(packages):
+    for package in packages:
+        try:
+            subprocess.run(
+                ["pip", "uninstall", package, "-y"],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            print(f"Uninstalled {package}")
+        except subprocess.CalledProcessError as e:
+            print(f"Error uninstalling {package}: {e}")
+
+# List of packages to uninstall
+packages_to_remove = ["jax", "jaxlib"]
+
+if __name__ == "__main__":
+    uninstall_packages(packages_to_remove)
+
 
 # Load the pre-trained model
 @st.cache_resource  # Cache the model for faster access
