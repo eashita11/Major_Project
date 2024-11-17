@@ -1,25 +1,18 @@
 import numpy as np
 from PIL import Image
 import tensorflow as tf
+import kagglehub
 import streamlit as st
-import requests
-import os
 
-# Load the pre-trained model
+# Load the pre-trained model using kagglehub
 @st.cache_resource
 def load_model():
-    model_url = st.secrets["model"]["url"]  # Ensure this URL points to the direct download link
-    local_model_path = "pneumonia_detection_model.keras"
-    if not os.path.exists(local_model_path):
-        response = requests.get(model_url)
-        if response.status_code == 200:
-            with open(local_model_path, "wb") as f:
-                f.write(response.content)
-            st.write(f"Model downloaded successfully: {local_model_path}")
-        else:
-            st.error(f"Failed to download the model. HTTP Status: {response.status_code}")
-            raise ValueError("Failed to download the model.")
-    return tf.keras.models.load_model(local_model_path)
+    # Use kagglehub to download the model
+    path = kagglehub.model_download("eashitadhillon/pneumonia_detection_model/keras/default")
+    st.write(f"Model downloaded to: {path}")
+    
+    # Load the model from the downloaded path
+    return tf.keras.models.load_model(path)
 
 # Function to preprocess and predict the uploaded image
 def predict_image(img):
