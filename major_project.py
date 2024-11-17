@@ -29,11 +29,14 @@ def predict_image(img):
     img_array = np.array(img) / 255.0  # Normalize pixel values to [0, 1]
     img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
 
-    # Make a prediction
-    prediction = model.predict(img_array)
-    class_label = "PNEUMONIA" if prediction[0][0] > 0.5 else "NORMAL"
-    confidence = prediction[0][0] if prediction[0][0] > 0.5 else 1 - prediction[0][0]
+    # Make a prediction using TFSMLayer or SavedModel
+    prediction = model(img_array)  # Call the model directly
+    prediction_value = prediction.numpy()[0][0]  # Convert prediction to numpy
+
+    class_label = "PNEUMONIA" if prediction_value > 0.5 else "NORMAL"
+    confidence = prediction_value if prediction_value > 0.5 else 1 - prediction_value
     return class_label, confidence
+
 
 # Load the model
 model = load_model()
