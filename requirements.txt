@@ -7,3 +7,4 @@ seaborn
 opencv-python
 scikit-learn
 pillow
+jaxlib!=*  # Ensure jaxlib is not installed
