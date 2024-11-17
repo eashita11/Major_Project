@@ -9,13 +9,18 @@ from keras.layers import TFSMLayer
 # Load the pre-trained model using kagglehub
 @st.cache_resource
 def load_model():
-    path = kagglehub.model_download("eashitadhillon/pneumonia_detection_model/keras/default")
-    st.write(f"Model downloaded to: {path}")
-    
+    path = "/home/appuser/.cache/kagglehub/models/eashitadhillon/pneumonia_detection_model/keras/default/1"
+    model_file = f"{path}/pneumonia_detection_model.keras"  # Adjust based on actual file
+    st.write(f"Model file: {model_file}")
+
+    if not os.path.exists(model_file):
+        st.error("Model file not found!")
+        raise FileNotFoundError("Model file does not exist.")
+
+    # Load the model
     try:
-        # Use TFSMLayer for inference
-        model = TFSMLayer(path, call_endpoint='serving_default')  # Adjust `call_endpoint` if necessary
-        st.write("Model loaded using TFSMLayer.")
+        model = tf.keras.models.load_model(model_file)
+        st.write("Model loaded successfully.")
         return model
     except Exception as e:
         st.error(f"Failed to load model: {e}")
