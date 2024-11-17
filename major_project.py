@@ -8,24 +8,48 @@ from keras.layers import TFSMLayer
 
 # Load the pre-trained model using kagglehub
 @st.cache_resource
+import os
+import kagglehub
+import tensorflow as tf
+import streamlit as st
+
+@st.cache_resource
 def load_model():
-    path = "/home/appuser/.cache/kagglehub/models/eashitadhillon/pneumonia_detection_model/keras/default/1"
-    model_file = f"{path}/pneumonia_detection_model.keras"  # Adjust based on actual file
-    st.write(f"Model file: {model_file}")
+    # Download model using KaggleHub
+    path = kagglehub.model_download("eashitadhillon/pneumonia_detection_model/keras/default")
+    st.write(f"Model downloaded to: {path}")
 
-    if not os.path.exists(model_file):
-        st.error("Model file not found!")
-        raise FileNotFoundError("Model file does not exist.")
+    # Inspect the contents
+    st.write("Directory contents:", os.listdir(path))
 
-    # Load the model
-    try:
-        model = tf.keras.models.load_model(model_file)
-        st.write("Model loaded successfully.")
-        return model
-    except Exception as e:
-        st.error(f"Failed to load model: {e}")
-        raise
-    return model
+    # Check for SavedModel format
+    if "saved_model.pb" in os.listdir(path):
+        st.write("Detected TensorFlow SavedModel format.")
+        try:
+            model = tf.keras.models.load_model(path)
+            st.write("Model loaded successfully.")
+            return model
+        except Exception as e:
+            st.error(f"Error loading SavedModel: {e}")
+            raise
+
+    # Check for .keras or .h5 file
+    for file in os.listdir(path):
+        if file.endswith(".keras") or file.endswith(".h5"):
+            model_file = os.path.join(path, file)
+            st.write(f"Detected model file: {model_file}")
+            try:
+                model = tf.keras.models.load_model(model_file)
+                st.write("Model loaded successfully.")
+                return model
+            except Exception as e:
+                st.error(f"Error loading model file: {e}")
+                raise
+
+    # If no supported files are found
+    st.error("No compatible model file found in the downloaded path.")
+    raise FileNotFoundError("No supported model file found.")
+
 
 # Function to preprocess and predict the uploaded image
 def predict_image(img):
