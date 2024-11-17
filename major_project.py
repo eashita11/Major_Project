@@ -66,7 +66,7 @@ def load_model():
     model_path = "pneumonia_detection_model.keras"
     if not os.path.exists(model_path):
         # Download the model from Google Drive
-        url = "https://drive.google.com/uc?id=<FILE_ID>&export=download"
+        url = "https://drive.google.com/uc?id=16vNRfrmX6Kv2YfheVuQUWAOAWbSiPE8S&export=download"
         response = requests.get(url, stream=True)
         with open(model_path, "wb") as file:  # Ensure binary mode
             for chunk in response.iter_content(chunk_size=8192):
