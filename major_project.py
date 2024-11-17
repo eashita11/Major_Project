@@ -3,6 +3,7 @@ from PIL import Image
 import tensorflow as tf
 import kagglehub
 import streamlit as st
+import os 
 
 # Load the pre-trained model using kagglehub
 @st.cache_resource
